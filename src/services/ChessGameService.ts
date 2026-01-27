@@ -6,9 +6,7 @@ function cloneBoard(board: Board): Board {
   return board.map((row) => row.slice());
 }
 
-function sameSquare(a: Square, b: Square) {
-  return a.file === b.file && a.rank === b.rank;
-}
+
 
 function pieceChar(p: Piece): string {
   // Unicode chess pieces

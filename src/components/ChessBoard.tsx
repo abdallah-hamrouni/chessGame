@@ -17,6 +17,13 @@ export default function ChessBoard({ service }: Props) {
   // drag source
   const [dragFrom, setDragFrom] = useState<Square | null>(null);
 
+  function toAlg(s: Square) {
+  const file = String.fromCharCode(97 + s.file); // 0..7 => a..h
+  const rank = 8 - s.rank; // rank 0 en haut => "8", rank 7 => "1"
+  return `${file}${rank}`;
+}
+
+
  useEffect(() => {
   const unsub = service.subscribe(() => {
     setBoard(service.getBoard());
@@ -40,6 +47,7 @@ export default function ChessBoard({ service }: Props) {
   const renderPiece = (p: Piece, from: Square) => {
     return (
       <span
+        data-testid={`piece-${p.id}`}
         className="piece"
         draggable
         onDragStart={() => setDragFrom(from)}
@@ -71,6 +79,7 @@ export default function ChessBoard({ service }: Props) {
 
             return (
               <div
+                data-testid={`sq-${toAlg(square)}`}
                 key={sqKey(square)}
                 className={`square ${isDark ? "dark" : "light"}`}
                 onDragOver={(e) => e.preventDefault()}
