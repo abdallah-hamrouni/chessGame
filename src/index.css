@@ -1,0 +1,130 @@
+:root {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: #e8eef5;
+  background: #0b0f14;
+}
+
+body {
+  margin: 0;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+h1 { margin: 0 0 8px 0; font-size: 24px; }
+.muted { margin: 0 0 16px 0; opacity: 0.75; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 520px 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.boardWrap {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.boardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.title { font-weight: 700; }
+.meta { display: flex; align-items: center; gap: 10px; opacity: 0.9; }
+
+.btn {
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: inherit;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.btn:hover { background: rgba(255,255,255,0.10); }
+
+.board {
+  width: 492px;
+  height: 492px;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+}
+
+.square {
+  position: relative;
+  display: grid;
+  place-items: center;
+  user-select: none;
+}
+
+.square.light { background: #d7e0ea; color: #111; }
+.square.dark  { background: #4a6b8a; }
+
+.coords {
+  position: absolute;
+  inset: 6px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  opacity: 0.65;
+  pointer-events: none;
+}
+.square.light .coords { color: rgba(0,0,0,0.7); }
+.square.dark .coords  { color: rgba(255,255,255,0.85); }
+
+.piece {
+  font-size: 44px;
+  line-height: 1;
+  cursor: grab;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.25));
+}
+.piece:active { cursor: grabbing; }
+
+.panel {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.card {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+}
+
+.pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.history {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.4;
+}
