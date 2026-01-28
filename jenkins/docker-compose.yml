@@ -1,0 +1,33 @@
+services:
+  docker:
+    image: docker:dind
+    privileged: true
+    restart: always
+    ports:
+      - "2376:2376"
+    environment:
+      DOCKER_TLS_CERTDIR: /certs
+    volumes:
+      - jenkins-docker-certs:/certs/client:rw
+      - jenkins-data:/var/jenkins_home:rw
+
+  jenkins:
+    build: .
+    restart: always
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      JAVA_OPTS: "-Dhudson.model.DirectoryBrowserSupport.CSP="
+      DOCKER_HOST: "tcp://docker:2376"
+      DOCKER_CERT_PATH: "/certs/client"
+      DOCKER_TLS_VERIFY: "1"
+    volumes:
+      - jenkins-data:/var/jenkins_home:rw
+      - jenkins-docker-certs:/certs/client:ro
+    depends_on:
+      - docker
+
+volumes:
+  jenkins-data:
+  jenkins-docker-certs:
