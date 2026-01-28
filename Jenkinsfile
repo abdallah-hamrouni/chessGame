@@ -1,16 +1,71 @@
 pipeline {
-    agent any
+    agent none
 
     stages {
-        stage('Step 1') {
+        stage('Build') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.57.0-noble'
+                    args '--network=host'
+                }
+            }
             steps {
-                sh 'echo "Étape 1"'
+                sh 'node -v'
+                sh 'npm -v'
+                sh 'npm install'
+                sh 'npm run build'
             }
         }
 
-        stage('Step 2') {
+        stage('Unit Tests (Vitest)') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.57.0-noble'
+                    args '--network=host'
+                }
+            }
             steps {
-                sh 'echo "Étape 2"'
+                sh 'npm run test'
+            }
+            post {
+                always {
+                    publishHTML([
+                        allowMissing: true,
+                        alwaysLinkToLastBuild: false,
+                        keepAll: true,
+                        reportDir: 'html',
+                        reportFiles: 'index.html',
+                        reportName: 'VitestReport',
+                        reportTitles: 'Vitest - Unit Tests',
+                        useWrapperFileDirectly: true
+                    ])
+                }
+            }
+        }
+
+        stage('UI Tests (Playwright)') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.57.0-noble'
+                    args '--network=host'
+                }
+            }
+            steps {
+                sh 'npm run test:e2e'
+            }
+            post {
+                always {
+                    publishHTML([
+                        allowMissing: true,
+                        alwaysLinkToLastBuild: false,
+                        keepAll: true,
+                        reportDir: 'playwright-report',
+                        reportFiles: 'index.html',
+                        reportName: 'PlaywrightReport',
+                        reportTitles: 'Playwright - UI Tests',
+                        useWrapperFileDirectly: true
+                    ])
+                }
             }
         }
     }
