@@ -68,5 +68,22 @@ pipeline {
                 }
             }
         }
+        stage('Deploy (Netlify)'){
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.57.0-noble'
+                    args '--network=host'
+                }
+            }
+            environment {
+                NETLIFY_TOKEN = credentials('NETLIFY_TOKEN')
+            }
+            when { branch 'main' }
+            steps {
+                sh 'npm install'
+                sh 'npm run build'
+                sh 'npx netlify deploy --prod --dir=dist'
+            }
+        }
     }
 }
