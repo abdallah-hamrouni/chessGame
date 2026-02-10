@@ -86,23 +86,25 @@ pipeline {
     }
 }
 
-stage('Deploy (Netlify)'){
-    agent {
-        docker {
-            image 'mcr.microsoft.com/playwright:v1.57.0-noble'
-            args '--network=host'
-        }
+stage('Deploy (Netlify)') {
+  agent {
+    docker {
+      image 'mcr.microsoft.com/playwright:v1.57.0-noble'
+      args '--network=host'
     }
-    environment {
-        NETLIFY_AUTH_TOKEN = credentials('NETLIFY_TOKEN')
-    }
-    when { branch 'main' }
-    steps {
-        sh 'npm install'
-        sh 'npm run build'
-        sh 'npx netlify deploy --prod --dir=dist'
-    }
+  }
+  when { branch 'main' }
+  environment {
+    NETLIFY_AUTH_TOKEN = credentials('NETLIFY_TOKEN')
+    NETLIFY_SITE_ID    = credentials('NETLIFY_SITE_ID')
+  }
+  steps {
+    sh 'npm ci || npm install'
+    sh 'npm run build'
+    sh 'npx netlify deploy --prod --dir=dist --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN'
+  }
 }
+
 
     }
 }
