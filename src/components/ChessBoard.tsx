@@ -10,6 +10,12 @@ function sqKey(s: Square) {
   return `${s.rank}-${s.file}`;
 }
 
+function toAlg(s: Square) {
+  const file = String.fromCharCode(97 + s.file); // 0..7 => a..h
+  const rank = 8 - s.rank; // rank 0 en haut => "8", rank 7 => "1"
+  return `${file}${rank}`;
+}
+
 export default function ChessBoard({ service }: Props) {
   const [board, setBoard] = useState<Board>(() => service.getBoard());
   const [historyCount, setHistoryCount] = useState<number>(() => service.getHistory().length);
@@ -17,31 +23,44 @@ export default function ChessBoard({ service }: Props) {
   // drag source
   const [dragFrom, setDragFrom] = useState<Square | null>(null);
 
-  function toAlg(s: Square) {
-  const file = String.fromCharCode(97 + s.file); // 0..7 => a..h
-  const rank = 8 - s.rank; // rank 0 en haut => "8", rank 7 => "1"
-  return `${file}${rank}`;
-}
+  // surlignage
+  const [selected, setSelected] = useState<Square | null>(null);
+  const [legalTargets, setLegalTargets] = useState<Set<string>>(new Set());
 
+  // feedback coup illégal
+  const [illegalMsg, setIllegalMsg] = useState<string | null>(null);
 
- useEffect(() => {
-  const unsub = service.subscribe(() => {
-    setBoard(service.getBoard());
-    setHistoryCount(service.getHistory().length);
-  });
+  useEffect(() => {
+    const unsub = service.subscribe(() => {
+      setBoard(service.getBoard());
+      setHistoryCount(service.getHistory().length);
+    });
 
-  return () => {
-    unsub(); // on ignore ce qu'il renvoie
-  };
-}, [service]);
-
+    return () => {
+      unsub();
+    };
+  }, [service]);
 
   const files = useMemo(() => ["a", "b", "c", "d", "e", "f", "g", "h"], []);
 
+  const clearDragUI = () => {
+    setDragFrom(null);
+    setSelected(null);
+    setLegalTargets(new Set());
+  };
+
   const onDropSquare = (to: Square) => {
     if (!dragFrom) return;
-    service.movePiece(dragFrom, to);
-    setDragFrom(null);
+
+    const ok = service.tryMove(dragFrom, to);
+    clearDragUI();
+
+    if (!ok) {
+      setIllegalMsg(`Coup illégal : ${toAlg(dragFrom)} → ${toAlg(to)}`);
+      window.setTimeout(() => setIllegalMsg(null), 2000);
+    } else {
+      setIllegalMsg(null);
+    }
   };
 
   const renderPiece = (p: Piece, from: Square) => {
@@ -50,8 +69,16 @@ export default function ChessBoard({ service }: Props) {
         data-testid={`piece-${p.id}`}
         className="piece"
         draggable
-        onDragStart={() => setDragFrom(from)}
-        onDragEnd={() => setDragFrom(null)}
+        onDragStart={() => {
+          setIllegalMsg(null);
+          setDragFrom(from);
+          setSelected(from);
+
+          // récupère les coups légaux depuis la case
+          const targets = service.getLegalMovesFrom(from); // ex: ["a3","a4"]
+          setLegalTargets(new Set(targets));
+        }}
+        onDragEnd={() => clearDragUI()}
         title={`${p.color} ${p.type} (${p.id})`}
       >
         {service.getPieceChar(p)}
@@ -62,7 +89,8 @@ export default function ChessBoard({ service }: Props) {
   return (
     <div className="boardWrap">
       <div className="boardHeader">
-        <div className="title">Échiquier (déplacements libres)</div>
+        <div className="title">Échiquier (règles activées)</div>
+
         <div className="meta">
           Coups: <b>{historyCount}</b>
           <button className="btn" onClick={() => service.reset()}>
@@ -71,17 +99,25 @@ export default function ChessBoard({ service }: Props) {
         </div>
       </div>
 
+      {illegalMsg ? <div className="warning">{illegalMsg}</div> : null}
+
       <div className="board">
         {board.map((row, rank) =>
           row.map((cell, file) => {
             const square: Square = { rank, file };
             const isDark = (rank + file) % 2 === 1;
 
+            const alg = toAlg(square);
+            const isSelected = selected ? toAlg(selected) === alg : false;
+            const isLegalTarget = legalTargets.has(alg);
+
             return (
               <div
-                data-testid={`sq-${toAlg(square)}`}
+                data-testid={`sq-${alg}`}
                 key={sqKey(square)}
-                className={`square ${isDark ? "dark" : "light"}`}
+                className={`square ${isDark ? "dark" : "light"} ${isSelected ? "selected" : ""} ${
+                  isLegalTarget ? "legalTarget" : ""
+                }`}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => onDropSquare(square)}
               >
